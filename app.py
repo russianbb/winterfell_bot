@@ -1,7 +1,10 @@
 from pyrogram import Client, filters
+from uvloop import install
 from db import db
 
 from settings import TELEGRAM_API_HASH, TELEGRAM_API_ID, TELEGRAM_BOT_TOKEN, LIST_HEADER
+
+install()
 
 app = Client(
     name="winterfell_groceries_list_bot",
@@ -12,7 +15,7 @@ app = Client(
 
 
 @app.on_message(filters.group & filters.command("list"))
-def list_items(client, message):
+async def list_items(client, message):
     group_id = str(message.chat.id)
 
     query_params = {"group": group_id}
@@ -24,11 +27,11 @@ def list_items(client, message):
     else:
         data = "Lista vazia"
 
-    message.reply(data)
+    await message.reply(data)
 
 
 @app.on_message(filters.group & filters.command("add"))
-def add_item(client, message):
+async def add_item(client, message):
     command_args = " ".join(message.command[1:])
     new_items = command_args.split(",")
     new_items = [new_item.strip() for new_item in new_items]
@@ -44,11 +47,11 @@ def add_item(client, message):
     items = query.get("items")
     data = LIST_HEADER + "\n".join(items)
 
-    message.reply(data)
+    await message.reply(data)
 
 
 @app.on_message(filters.group & filters.command("check"))
-def check_item(client, message):
+async def check_item(client, message):
     command_args = " ".join(message.command[1:])
     check_items = command_args.split(",")
     check_items = [new_item.strip() for new_item in check_items]
@@ -71,17 +74,17 @@ def check_item(client, message):
     else:
         data = "Lista vazia"
 
-    message.reply(data)
+    await message.reply(data)
 
 
 @app.on_message(filters.group & filters.command("clean"))
-def clean_list(client, message):
+async def clean_list(client, message):
     group_id = str(message.chat.id)
     query_params = {"group": group_id}
 
     db.posts.update_one(query_params, {"$unset": {"items": []}})
 
-    message.reply("Lista excluída.")
+    await message.reply("Lista excluída.")
 
 
 app.run()
