@@ -77,14 +77,37 @@ async def check_item(client, message):
     await message.reply(data)
 
 
-@app.on_message(filters.group & filters.command("clean"))
-async def clean_list(client, message):
+@app.on_message(filters.group & filters.command("cleanall"))
+async def clean_all_items(client, message):
     group_id = str(message.chat.id)
     query_params = {"group": group_id}
 
     db.posts.update_one(query_params, {"$unset": {"items": []}})
 
     await message.reply("Lista excluída.")
+
+
+@app.on_message(filters.group & filters.command("clean"))
+async def clean_checked_items(client, message):
+    group_id = str(message.chat.id)
+    query_params = {"group": group_id}
+
+    query = db.posts.find_one(query_params)
+    existing_items = query.get("items", None)
+
+    if existing_items:
+        keep_items = []
+        for item in existing_items:
+            if "✅" not in item:
+                keep_items.append(item)
+
+        db.posts.update_one(query_params, {"$set": {"items": keep_items}})
+        data = LIST_HEADER + "\n".join(keep_items)
+
+    else:
+        data = "Lista vazia"
+
+    await message.reply(data)
 
 
 app.run()
