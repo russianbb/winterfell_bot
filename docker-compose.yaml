@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  mongo-db:
+    image: mongo:latest
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-db:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGODB_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGODB_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=mongo-db
+      - ME_CONFIG_MONGODB_PORT="27017"
+    depends_on: &depends_on
+      - mongo-db
+
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./docker/worker/dockerfile
+    restart: always
+    volumes:
+      - .:/code
+    environment:
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_URL=mongo-db
+      - TELEGRAM_API_HASH=${TELEGRAM_API_HASH}
+      - TELEGRAM_API_ID=${TELEGRAM_API_ID}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    depends_on:
+      - mongo-db
+      - mongo-express
+
+
+volumes:
+  mongo-db:
+    name: mongo-db-data_winterfell_bot

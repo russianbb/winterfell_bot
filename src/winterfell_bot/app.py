@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from uvloop import install
-from db import db
+from db import db, products_collection
 
 from settings import TELEGRAM_API_HASH, TELEGRAM_API_ID, TELEGRAM_BOT_TOKEN, LIST_HEADER
 
