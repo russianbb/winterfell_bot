@@ -1,3 +1,6 @@
+# To autorefresh
+# entr -r python app.py
+
 run:
 	@echo "--> Running Docker."
 	docker compose up

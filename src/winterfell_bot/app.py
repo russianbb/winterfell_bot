@@ -1,5 +1,4 @@
 from pyrogram import Client, filters
-from pyrogram.raw.functions.messages import SendMessage
 from uvloop import install
 from db import db
 from groceries.models import GroceryItem, GroceryList
