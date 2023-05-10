@@ -19,17 +19,16 @@ class GroceryList:
 
         data = [item.to_json() for item in self.items]
 
-        collection.update_one(
+        collection.replace_one(
             filter={"_id": self._id},
-            update={
-                "$push": {
-                    "items": {"$each": data, "$sort": 1}
-                }
-            },
+            replacement={"items": data},
             upsert=True
         )
 
     def display_list(self):
+        if not self.items:
+            return "Lista vazia"
+
         list_display = [item.display() for item in self.items]
         return LIST_HEADER + "\n".join(list_display)
 

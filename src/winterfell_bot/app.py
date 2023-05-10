@@ -18,17 +18,10 @@ app = Client(
 @app.on_message(filters.group & filters.command("list"))
 async def list_items(client, message):
     group_id = str(message.chat.id)
+    grocery_list = GroceryList.get_object(db.groceries, group_id)
 
-    query_params = {"group": group_id}
-    query = db.posts.find_one(query_params)
+    await message.reply(grocery_list.display_list())
 
-    items = query.get("items")
-    if items:
-        data = LIST_HEADER + "\n".join(items)
-    else:
-        data = "Lista vazia"
-
-    await message.reply(data)
 
 
 @app.on_message(filters.group & filters.command("add"))
