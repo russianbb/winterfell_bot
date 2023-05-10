@@ -46,6 +46,17 @@ class GroceryList:
 
         return GroceryList(_id=_id, items=items)
 
+    @staticmethod
+    def clean_all_items(collection, _id):
+        collection.update_one(
+            filter={"_id": _id},
+            update={
+                "$unset": {
+                    "items": []
+                }
+            }
+        )
+
 
 class GroceryItem:
     name = None
@@ -90,9 +101,3 @@ class GroceryItem:
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at) if self.updated_at else None,
         }
-
-    @staticmethod
-    def from_db(item):
-        return GroceryItem(**item)
-
-

@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.raw.functions.messages import SendMessage
 from uvloop import install
 from db import db
 from groceries.models import GroceryItem, GroceryList
@@ -20,7 +21,7 @@ async def list_items(client, message):
     group_id = str(message.chat.id)
     grocery_list = GroceryList.get_object(db.groceries, group_id)
 
-    await message.reply(grocery_list.display_list())
+    await app.send_message(group_id, grocery_list.display_list())
 
 
 
@@ -37,7 +38,7 @@ async def add_item(client, message):
     grocery_list.items.extend(new_items)
     grocery_list.save(db.groceries)
 
-    await message.reply(grocery_list.display_list())
+    await app.send_message(group_id, grocery_list.display_list())
 
 @app.on_message(filters.group & filters.command("check"))
 async def check_item(client, message):
@@ -52,17 +53,16 @@ async def check_item(client, message):
     grocery_list.check_items(items)
     grocery_list.save(db.groceries)
 
-    await message.reply(grocery_list.display_list())
+    await app.send_message(group_id, grocery_list.display_list())
 
 
 @app.on_message(filters.group & filters.command("cleanall"))
 async def clean_all_items(client, message):
     group_id = str(message.chat.id)
-    query_params = {"group": group_id}
 
-    db.posts.update_one(query_params, {"$unset": {"items": []}})
+    GroceryList.clean_all_items(db.groceries, group_id)
 
-    await message.reply("Lista excluída.")
+    await app.send_message(group_id, "Lista excluída")
 
 
 @app.on_message(filters.group & filters.command("clean"))
