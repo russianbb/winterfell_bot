@@ -37,6 +37,9 @@ class GroceryList:
         list_display = [item.display() for item in self.items]
         return LIST_HEADER + "\n".join(list_display)
 
+    def clean_checked_items(self):
+        self.items = [item for item in self.items if not item.checked]
+
     @staticmethod
     def get_object(collection, _id):
         obj = collection.find_one(_id)
