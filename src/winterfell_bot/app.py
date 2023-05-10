@@ -1,6 +1,7 @@
 from pyrogram import Client, filters
 from uvloop import install
-from db import db, products_collection
+from db import db
+from groceries.models import GroceryItem, GroceryList
 
 from settings import TELEGRAM_API_HASH, TELEGRAM_API_ID, TELEGRAM_BOT_TOKEN, LIST_HEADER
 
@@ -32,23 +33,17 @@ async def list_items(client, message):
 
 @app.on_message(filters.group & filters.command("add"))
 async def add_item(client, message):
-    command_args = " ".join(message.command[1:])
-    new_items = command_args.split(",")
-    new_items = [new_item.strip() for new_item in new_items]
-
     group_id = str(message.chat.id)
-    query_params = {"group": group_id}
+    command_args = " ".join(message.command[1:])
+    item_names = command_args.split(",")
 
-    db.posts.update_one(
-        query_params, {"$push": {"items": {"$each": new_items, "$sort": 1}}}
-    )
+    new_items = [GroceryItem(name=name) for name in item_names]
 
-    query = db.posts.find_one(query_params)
-    items = query.get("items")
-    data = LIST_HEADER + "\n".join(items)
+    grocery_list = GroceryList.get_object(db.groceries, group_id)
+    grocery_list.items.extend(new_items)
+    grocery_list.save(db.groceries)
 
-    await message.reply(data)
-
+    await message.reply(grocery_list.display_list())
 
 @app.on_message(filters.group & filters.command("check"))
 async def check_item(client, message):
