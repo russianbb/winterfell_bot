@@ -27,6 +27,7 @@ async def list_items(client, message):
 @app.on_message(filters.group & filters.command("add"))
 async def add_item(client, message):
     group_id = str(message.chat.id)
+
     command_args = " ".join(message.command[1:])
     item_names = command_args.split(",")
 
@@ -40,29 +41,18 @@ async def add_item(client, message):
 
 @app.on_message(filters.group & filters.command("check"))
 async def check_item(client, message):
-    command_args = " ".join(message.command[1:])
-    check_items = command_args.split(",")
-    check_items = [new_item.strip() for new_item in check_items]
-
     group_id = str(message.chat.id)
-    query_params = {"group": group_id}
-    query = db.posts.find_one(query_params)
 
-    existing_items = query.get("items", None)
-    if existing_items:
-        for key, value in enumerate(existing_items):
-            if value in check_items:
-                existing_items[key] = "✅ " + value
+    command_args = " ".join(message.command[1:])
+    item_names = command_args.split(",")
 
-        existing_items.sort()
+    items = [GroceryItem(name=name) for name in item_names]
 
-        db.posts.update_one(query_params, {"$set": {"items": existing_items}})
-        data = LIST_HEADER + "\n".join(existing_items)
+    grocery_list = GroceryList.get_object(db.groceries, group_id)
+    grocery_list.check_items(items)
+    grocery_list.save(db.groceries)
 
-    else:
-        data = "Lista vazia"
-
-    await message.reply(data)
+    await message.reply(grocery_list.display_list())
 
 
 @app.on_message(filters.group & filters.command("cleanall"))

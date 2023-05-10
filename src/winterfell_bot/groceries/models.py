@@ -25,6 +25,11 @@ class GroceryList:
             upsert=True
         )
 
+    def check_items(self, items_to_check):
+        for item in self.items:
+            if item in items_to_check:
+                item.set_as_checked()
+
     def display_list(self):
         if not self.items:
             return "Lista vazia"
@@ -74,6 +79,9 @@ class GroceryItem:
         if self.checked:
             return "✅ " + self.name
         return self.name
+
+    def set_as_checked(self):
+        self.checked = True
 
     def to_json(self):
         return {
